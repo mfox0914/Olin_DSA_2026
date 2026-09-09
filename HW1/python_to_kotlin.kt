@@ -41,6 +41,57 @@ val COMMON_INGREDIENT_UNITS: Map<String, String> = mapOf(
     " cups raisins" to "cups"
 )
 
+val UNICODE_CONVERSIONS: Map<Char, Double> = mapOf(
+    '↉' to 0.0,
+    '½' to 1.0 / 2.0,
+    '⅓' to 1.0 / 3.0,
+    '¼' to 1.0 / 4.0,
+    '⅕' to 1.0 / 5.0,
+    '⅙' to 1.0 / 6.0,
+    '⅐' to 1.0 / 7.0,
+    '⅛' to 1.0 / 8.0,
+    '⅑' to 1.0 / 9.0,
+    '⅒' to 1.0 / 10.0,
+    '⅔' to 2.0 / 3.0,
+    '⅖' to 2.0 / 5.0,
+    '¾' to 3.0 / 4.0,
+    '⅗' to 3.0 / 5.0,
+    '⅜' to 3.0 / 8.0,
+    '⅘' to 4.0 / 5.0,
+    '⅚' to 5.0 / 6.0,
+    '⅞' to 7.0 / 8.0
+)
+
+/** Separate ingredient strings into ingredient names and numeric amounts. */
+fun separateAmountsAndIngredients(
+    ingredientList: List<String>
+): Map<String, Double> {
+    val ingredients: MutableMap<String, Double> = mutableMapOf()
+
+    for (ingredient in ingredientList) {
+        var fullNumber = ""
+        var fullWord = ""
+
+        for (character in ingredient) {
+            if (character.isDigit() || character in UNICODE_CONVERSIONS) {
+                fullNumber += character
+            } else {
+                fullWord += character
+            }
+        }
+
+        var fullNumberAsDouble = 0.0
+        for (character in fullNumber) {
+            fullNumberAsDouble += UNICODE_CONVERSIONS[character]
+                ?: character.digitToInt().toDouble()
+        }
+
+        ingredients[fullWord] = fullNumberAsDouble
+    }
+
+    return ingredients
+}
+
 /**
  * Combine common ingredients that are the same but formatted differently.
  *
@@ -119,7 +170,7 @@ fun convertToCups(
 ): Map<String, Double> {
 
     val ingredientsDict: Map<String, Double> =
-        separateAmountsAndIngredients(listIngredientsPerAllRecipes)
+        separateAmountsAndIngredients(listIngredientsPerAllRecipes.flatten())
 
     val combinedIngredients: Map<String, Double> =
         combineSameIngredientsStandalone(ingredientsDict)
